@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Qwipo B2B — Intelligent Product Recommendations</title>
+  <style>
+    :root{--accent:#0f766e;--muted:#6b7280;--card:#ffffff;--bg:#f8fafc}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:var(--bg);color:#0f172a}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:1200px;margin:0 auto;padding:24px}
+
+    /* Navbar */
+    header.navbar{background:#fff;border-bottom:1px solid #e6edf3;position:sticky;top:0;z-index:50}
+    .nav-inner{display:flex;align-items:center;gap:16px;padding:12px 24px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--accent)}
+    .brand svg{width:36px;height:36px}
+    nav.links{margin-left:16px;flex:1}
+    nav.links ul{display:flex;gap:12px;align-items:center;list-style:none;margin:0;padding:0}
+    nav.links li{padding:8px 12px;border-radius:8px}
+    nav.links li:hover{background:#f1f7f8}
+    .search{display:flex;align-items:center;gap:8px}
+    .search input{padding:8px 12px;border-radius:8px;border:1px solid #dbe7ea;min-width:220px}
+    .actions{display:flex;align-items:center;gap:12px}
+    .btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.secondary{background:#fff;color:var(--accent);border:1px solid #cde7e4}
+    .cart-btn{position:relative}
+    .badge{position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:999px;padding:2px 6px;font-size:12px}
+
+    /* Hero */
+    .hero{background:linear-gradient(90deg,#ecfeff 0%, #f8fafc 100%);padding:36px;border-radius:12px;margin-top:18px;display:flex;gap:24px;align-items:center}
+    .hero .col{flex:1}
+    .hero h1{margin:0;font-size:28px}
+    .hero p{color:var(--muted);margin-top:8px}
+
+    /* Layout */
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:20px;margin-top:20px}
+    .card{background:var(--card);border-radius:12px;padding:16px;border:1px solid #eef6f7}
+
+    /* Product list */
+    .products{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .product{display:flex;gap:12px;align-items:center;padding:12px;border-radius:10px;border:1px solid #eef6f7}
+    .product .img{width:96px;height:96px;border-radius:8px;overflow:hidden;background:#ecfeff;flex-shrink:0}
+    .product h4{margin:0;font-size:16px}
+    .meta{color:var(--muted);font-size:13px}
+    .price{font-weight:700;color:#0f172a}
+    .qty{display:flex;gap:6px;align-items:center}
+    .qty input{width:56px;padding:6px;border-radius:6px;border:1px solid #dbe7ea;text-align:center}
+
+    /* Recommendations */
+    .rec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .rec-card{padding:12px;border-radius:10px;border:1px solid #e6f3f1;background:linear-gradient(180deg,#ffffff,#f8fffd)}
+    .rec-card .img{width:100%;height:140px;border-radius:8px;overflow:hidden;background:#f0fdfa;display:flex;align-items:center;justify-content:center}
+    .rec-card img{width:100%;height:100%;object-fit:cover}
+
+    /* Cart modal */
+    .modal{position:fixed;right:24px;bottom:24px;width:360px;max-height:70vh;overflow:auto;border-radius:12px;border:1px solid #e6f3f1;background:#fff;box-shadow:0 8px 40px rgba(2,6,23,0.08);padding:12px;display:none}
+    .modal.open{display:block}
+
+    /* Footer */
+    footer{margin-top:32px;padding:24px;background:#fff;border-top:1px solid #e6edf3}
+    .footer-grid{display:flex;justify-content:space-between;gap:12px}
+
+    /* Responsive */
+    @media(max-width:900px){.grid{grid-template-columns:1fr}.products{grid-template-columns:1fr}.rec-grid{grid-template-columns:1fr 1fr}.nav-inner{padding:12px}}
+    @media(max-width:520px){.rec-grid{grid-template-columns:1fr}.nav-inner{flex-wrap:wrap}.search input{min-width:120px}}
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="container nav-inner">
+      <div class="brand">
+        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect rx="10" width="64" height="64" fill="#0f766e"/><path d="M18 40 L30 24 L46 44" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div>Qwipo B2B</div>
+      </div>
+
+      <nav class="links" aria-label="Main Navigation">
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#products">Products</a></li>
+          <li><a href="#recommendations">Recommendations</a></li>
+          <li><a href="#insights">Insights</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="search">
+        <input id="searchInput" placeholder="Search products, brand or category" aria-label="Search products" />
+        <button class="btn" id="searchBtn">Search</button>
+      </div>
+
+      <div class="actions">
+        <button class="btn secondary" id="sellerBtn">For Sellers</button>
+        <button class="btn cart-btn" id="openCart">Cart <span class="badge" id="cartCount">0</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="home" class="hero">
+      <div class="col">
+        <h1>Intelligent product recommendations for kirana stores, restaurants & small businesses</h1>
+        <p>Personalized suggestions to increase order values and boost repeat purchases. Built for Qwipo's B2B marketplace — simulate and test the recommender here.</p>
+        <div style="margin-top:12px;display:flex;gap:8px">
+        
+          <button class="btn secondary" id="howItWorks">How it works</button>
+        </div>
+      </div>
+      <div class="col" style="text-align:right"><div class="col" img src="https://willispublicity.co.uk/gallery/wooden-menu-holders/images/Menu_Card_Holder_Fourpure.jpg">
+      </div><div class="col" style="text-align:right">
+        <img src="https://i0.wp.com/stanzaliving.wpcomstaging.com/wp-content/uploads/2022/04/c0989-grocery-stores-in-chennai.jpg?fit=639%2C480&ssl=1" alt="Top Banner" style="border-radius:12px; max-width:100%; height:auto;" />
+      </div>
+    </section>
+
+    <div class="grid">
+      <section id="products" class="card">
+        <h3>Products</h3>
+        <p class="meta">Browse products and add items to simulate a retailer shopping on Qwipo.</p>
+        <div style="margin-top:12px">
+          <div class="products" id="productList"></div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <h4>Personalized recommendations</h4>
+        <p class="meta">Recommendations adapt as you add purchases to the cart — this simulates behavior-based personalization.</p>
+        <div id="recommendationArea" style="margin-top:12px" class="rec-grid"></div>
+        <div style="margin-top:8px;text-align:center">
+          <button class="btn secondary" id="showMoreRec">Show more recommendations</button>
+        </div>
+        <hr style="margin:12px 0;border:none;border-top:1px dashed #e6f3f1">
+        <h5>Quick insights</h5>
+        <div id="insightsArea">
+          <p class="meta">Average order value uplift: <strong id="aovUplift">0%</strong></p>
+          <p class="meta">Repeat purchase likelihood estimate: <strong id="repeatPct">0%</strong></p>
+        </div>
+      </aside>
+    </div>
+
+    <section id="recommendations" class="card" style="margin-top:18px">
+      <h3>All recommendations</h3>
+      <p class="meta">System mixes category similarity, frequently-bought-together, and popularity to suggest items.</p>
+      <div id="allRecGrid" style="margin-top:12px" class="rec-grid"></div>
+    </section>
+
+    <section id="insights" class="card" style="margin-top:18px">
+      <h3>How the recommender works (simulated)</h3>
+      <ol>
+        <li>Tracks the categories and items you add to cart (purchase history simulated in localStorage).</li>
+        <li>Builds a category score and suggests high-margin bundles and frequently-bought-together items.</li>
+        <li>Reranks suggestions by expected order value uplift and repeat probability.</li>
+      </ol>
+      <p class="meta">This demo uses client-side heuristics to mimic a production pipeline (user profile, purchase co-occurrence matrix, popularity signals). In production, replace with server-side collaborative filtering + content features and A/B test uplift.</p>
+    </section>
+
+    <section id="contact" class="card" style="margin-top:18px">
+      <h3>Contact & Next steps</h3>
+      <p class="meta">Want this integrated into Qwipo's platform? Export the recommendation logic to server-side and connect to real purchase logs, product catalog and supplier margins.</p>
+      <p class="meta">Email: growth@qwipo.example</p>
+    </section>
+  </main>
+
+  <div class="modal" id="cartModal" aria-hidden="true">
+    <h4>Your cart</h4>
+    <div id="cartItems"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+      <div><strong>Total:</strong> ₹<span id="cartTotal">0</span></div>
+      <div style="display:flex;gap:8px"><button class="btn secondary" id="clearCart">Clear</button><button class="btn" id="checkoutBtn">Checkout</button></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container footer-grid">
+      <div>
+        <strong>Qwipo B2B</strong>
+        <p class="meta">Designed demo — Intelligent product recommendations to help retailers discover relevant products.</p>
+      </div>
+      <div>
+        <div class="meta">© Qwipo 2025</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const products = [
+      {id:1,name:'Premium Rice 5kg',category:'Grocery',price:420,margin:0.12,img:'https://i.pinimg.com/736x/34/39/fb/3439fb483b593dec45f047b352b6f56c.jpg'},
+      {id:2,name:'Refined Sunflower Oil 5L',category:'Grocery',price:780,margin:0.09,img:'https://houseofveda.com/cdn/shop/files/Sunflower-Oil_0d3d4714-f5ff-4b9f-b006-0145a6e2c455.jpg?v=1713351481'},
+      {id:3,name:'Instant Noodles (pack of 10)',category:'Grocery',price:230,margin:0.18,img:'https://m.media-amazon.com/images/I/81kFdSChhKL._SL1500_.jpg'},
+      {id:4,name:'Fresh Paneer 1kg',category:'Dairy',price:240,margin:0.25,img:'https://tse2.mm.bing.net/th/id/OIP.gVGk-VGeB72ycSZseFfXDAHaHs?pid=Api&P=0&h=180'},
+      {id:5,name:'Cheese Slices 400g',category:'Dairy',price:180,margin:0.2,img:'https://www.jiomart.com/images/product/600x600/490106453/amul-cheese-chiplets-1-kg-carton-product-images-o490106453-p490106453-4-202203231315.jpg'},
+      {id:6,name:'Disposable Plates 100pcs',category:'Packaging',price:150,margin:0.35,img:'https://sc04.alicdn.com/kf/U64cd891d2f1745d79de069c52c393d69H.jpg'},
+      {id:7,name:'Coke Soda 1L (box 12)',category:'Beverages',price:1200,margin:0.15,img:'https://c8.alamy.com/comp/2C256E1/huettenberg-germany-february-03-2020-box-with-10-coca-cola-cans-isolated-on-white-background-coca-cola-and-the-contour-bottle-design-are-tradem-2C256E1.jpg'},
+      {id:8,name:'Masala Spice Mix 500g',category:'Grocery',price:260,margin:0.3,img:'https://spiceeats.com/wp-content/uploads/2020/07/Garam-Masala.jpg'},
+      {id:9,name:'Cooking Gas Lighter',category:'Hardware',price:90,margin:0.4,img:'https://rukminim1.flixcart.com/image/416/416/k8ho0i80/gas-lighter/h/3/f/lighter-adjustable-electronic-flame-refillable-gas-stove-lighter-original-imafqg4jxhcewc3f.jpeg?q=70'},
+      {id:10,name:'Menu Card Holder',category:'Restaurant Supplies',price:320,margin:0.28,img:'https://willispublicity.co.uk/gallery/wooden-menu-holders/images/Menu_Card_Holder_Fourpure.jpg'}
+    ];
+
+    const popularity = {1:120,2:80,3:210,4:65,5:75,6:50,7:34,8:90,9:12,10:40};
+    const cooccurrence = {'1_2':45,'1_3':60,'3_8':40,'4_5':36,'6_10':22,'2_8':30,'7_3':12,'1_8':50};
+
+    function loadCart(){return JSON.parse(localStorage.getItem('qwipo_cart')||'[]')}
+    function saveCart(cart){localStorage.setItem('qwipo_cart',JSON.stringify(cart))}
+    function loadHistory(){return JSON.parse(localStorage.getItem('qwipo_history')||'[]')}
+    function saveHistory(h){localStorage.setItem('qwipo_history',JSON.stringify(h))}
+
+    const productListEl = document.getElementById('productList');
+    function renderProducts(filterText=''){
+      productListEl.innerHTML='';
+      const list = products.filter(p=> (p.name+ ' '+p.category).toLowerCase().includes(filterText.toLowerCase()));
+      for(const p of list){
+        const div = document.createElement('div');div.className='product';
+        div.innerHTML = `
+          <div class="img"><img src="${p.img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px"/></div>
+          <div style="flex:1">
+            <h4>${p.name}</h4>
+            <div class="meta">${p.category}</div>
+            <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">
+              <div><div class="price">₹${p.price}</div><div class="meta">margin ${(p.margin*100).toFixed(0)}%</div></div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end">
+                <div class="qty"><input type="number" min="1" value="1" data-id="${p.id}" class="qtyInput"/></div>
+                <div style="margin-top:8px"><button class="btn" data-add="${p.id}">Add</button></div>
+              </div>
+            </div>
+          </div>`;
+        productListEl.appendChild(div);
+      }
+    }
+
+    function updateCartCount(){const cart=loadCart();document.getElementById('cartCount').textContent = cart.reduce((s,i)=>s+i.qty,0)}
+    function renderCart(){const cart=loadCart();const el=document.getElementById('cartItems');el.innerHTML='';let total=0;for(const item of cart){
+      const p=products.find(x=>x.id===item.id);
+      const row=document.createElement('div');row.style.display='flex';row.style.justifyContent='space-between';row.style.padding='8px 0';
+      row.innerHTML = `<div><strong>${p.name}</strong><div class="meta">${p.category} • ₹${p.price} x ${item.qty}</div></div><div>₹${p.qty*p.price}</div>`;
+      el.appendChild(row); total += p.price*item.qty;
+    }
+    document.getElementById('cartTotal').textContent = total;
+    updateCartCount();
+    }
+
+    function addToCart(id, qty=1){const cart=loadCart();const existing = cart.find(c=>c.id===id);if(existing) existing.qty += qty; else cart.push({id,qty});saveCart(cart);
+      let history=loadHistory();history.push(id);if(history.length>50) history=history.slice(-50);saveHistory(history);
+      renderCart();updateRecommendations();}
+
+    function computeRecommendations(){
+      const cart=loadCart();const history=loadHistory();
+      const recs={};
+      for(const id of history){const p=products.find(x=>x.id===id);if(!p) continue;
+        for(const q of products.filter(x=>x.category===p.category && x.id!==id)){recs[q.id] = (recs[q.id]||0)+8}
+      }
+      for(const item of cart){for(const key in cooccurrence){const [a,b]=key.split('_').map(Number);if(a===item.id){recs[b]=(recs[b]||0)+cooccurrence[key]}else if(b===item.id){recs[a]=(recs[a]||0)+cooccurrence[key]}}}
+      for(const id in popularity){recs[id]=(recs[id]||0)+popularity[id]*0.1}
+      const result = Object.entries(recs).map(([id,score])=>({id:+id,score})).filter(r=>!cart.find(c=>c.id===r.id)).sort((a,b)=>b.score-a.score);
+      return result.slice(0,6);
+    }
+
+    function renderRecommendations(){
+      const recs=computeRecommendations();const el=document.getElementById('recommendationArea');el.innerHTML='';
+      for(const r of recs){const p=products.find(x=>x.id===r.id);if(!p) continue;
+        const card=document.createElement('div');card.className='rec-card';
+        card.innerHTML = `<div class="img"><img src="${p.img}" alt="${p.name}"/></div><div style="margin-top:6px"><div><strong>${p.name}</strong></div><div class="meta">${p.category} • ₹${p.price}</div><div style="margin-top:6px"><button class="btn" data-add="${p.id}" style="width:100%">Add</button></div></div>`;
+        el.appendChild(card);
+      }
+      const allEl=document.getElementById('allRecGrid');allEl.innerHTML='';
+      for(const r of recs){const p=products.find(x=>x.id===r.id);if(!p) continue;
+        const card=document.createElement('div');card.className='rec-card';
+        card.innerHTML = `<div class="img"><img src="${p.img}" alt="${p.name}"/></div><div style="margin-top:6px"><div><strong>${p.name}</strong></div><div class="meta">${p.category} • ₹${p.price}</div><div style="margin-top:6px"><button class="btn secondary" data-add="${p.id}" style="width:100%">Add</button></div></div>`;
+        allEl.appendChild(card);
+      }
+      const uplift=Math.min(25,Math.round(recs.length*2.5));
+      const repeat=Math.min(25,Math.round(loadHistory().length/2));
+      document.getElementById('aovUplift').textContent = uplift+'%';
+      document.getElementById('repeatPct').textContent = repeat+'%';
+    }
+
+    document.addEventListener('click',e=>{
+      if(e.target.matches('[data-add]')){const id=+e.target.getAttribute('data-add');
+        const input=document.querySelector(`.qtyInput[data-id="${id}"]`);
+        const qty=input?parseInt(input.value):1;addToCart(id,qty);}
+      if(e.target.id==='openCart'){document.getElementById('cartModal').classList.toggle('open')}
+      if(e.target.id==='clearCart'){saveCart([]);renderCart();updateRecommendations()}
+    });
+    document.getElementById('searchBtn').addEventListener('click',()=>{const txt=document.getElementById('searchInput').value;renderProducts(txt)})
+    renderProducts();renderCart();updateRecommendations();
+
+    function updateRecommendations(){renderRecommendations();updateCartCount();}
+  </script>
+</body>
+</html>
